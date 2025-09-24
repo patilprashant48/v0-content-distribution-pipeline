@@ -7,7 +7,21 @@ import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, Send, Download, Sparkles, Zap, Target } from "lucide-react"
+import {
+  Loader2,
+  Download,
+  Sparkles,
+  Zap,
+  Target,
+  Twitter,
+  Linkedin,
+  Mail,
+  Copy,
+  TrendingUp,
+  Clock,
+  Lightbulb,
+  BarChart3,
+} from "lucide-react"
 
 interface ProcessedContent {
   original_content: string
@@ -15,21 +29,52 @@ interface ProcessedContent {
     label: string
     confidence: number
   }
+  engagement_forecast: {
+    twitter: {
+      predicted_likes: number
+      predicted_retweets: number
+      predicted_replies: number
+      engagement_score: number
+      optimal_posting_time: string
+    }
+    linkedin: {
+      predicted_likes: number
+      predicted_shares: number
+      predicted_comments: number
+      engagement_score: number
+      optimal_posting_time: string
+    }
+    newsletter: {
+      predicted_open_rate: number
+      predicted_click_rate: number
+      engagement_score: number
+      optimal_send_time: string
+    }
+  }
+  optimization_suggestions: {
+    hashtag_recommendations: string[]
+    keyword_suggestions: string[]
+    tone_adjustments: string[]
+    timing_recommendations: string[]
+  }
   platforms: {
     twitter: {
       content: string
       hashtags: string[]
       character_count: number
+      optimized_content?: string
     }
     linkedin: {
       content: string
       hashtags: string[]
       character_count: number
+      optimized_content?: string
     }
     newsletter: {
       content: string
       subject_line: string
       word_count: number
+      optimized_subject?: string
     }
   }
   metadata: {
@@ -46,6 +91,8 @@ export function ContentPipelineInterface() {
   const [tone, setTone] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
   const [result, setResult] = useState<ProcessedContent | null>(null)
+  const [copiedPlatform, setCopiedPlatform] = useState<string | null>(null)
+  const [showOptimized, setShowOptimized] = useState<{ [key: string]: boolean }>({})
 
   const handleProcess = async () => {
     if (!content.trim()) return
@@ -91,6 +138,34 @@ export function ContentPipelineInterface() {
     linkElement.click()
   }
 
+  const shareToTwitter = (content: string, hashtags: string[]) => {
+    const text = encodeURIComponent(`${content} ${hashtags.join(" ")}`)
+    window.open(`https://twitter.com/intent/tweet?text=${text}`, "_blank")
+  }
+
+  const shareToLinkedIn = (content: string) => {
+    const text = encodeURIComponent(content)
+    window.open(
+      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}&summary=${text}`,
+      "_blank",
+    )
+  }
+
+  const copyToClipboard = async (content: string, platform: string) => {
+    try {
+      await navigator.clipboard.writeText(content)
+      setCopiedPlatform(platform)
+      setTimeout(() => setCopiedPlatform(null), 2000)
+    } catch (err) {
+      console.error("Failed to copy text: ", err)
+    }
+  }
+
+  const openEmailClient = (subject: string, content: string) => {
+    const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(content)}`
+    window.location.href = mailtoLink
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50">
       {/* Hero Section */}
@@ -98,16 +173,16 @@ export function ContentPipelineInterface() {
         <div className="text-center mb-12 animate-fade-in-up">
           <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
             <Sparkles className="h-4 w-4" />
-            AI-Powered Content Distribution
+            AI-Powered Content Distribution with Engagement Forecasting
           </div>
           <h1 className="text-6xl font-bold text-balance mb-6">
             <span className="gradient-text">Super fast content</span>
             <br />
-            <span className="text-slate-900">for every platform</span>
+            <span className="text-slate-900">with engagement prediction</span>
           </h1>
           <p className="text-xl text-slate-600 text-balance max-w-2xl mx-auto leading-relaxed">
-            Transform your content for multiple platforms with intelligent adaptation, sentiment analysis, and automated
-            optimization.
+            Transform your content for multiple platforms with intelligent adaptation, sentiment analysis, engagement
+            forecasting, and automated optimization.
           </p>
         </div>
 
@@ -198,11 +273,13 @@ export function ContentPipelineInterface() {
             <CardHeader className="pb-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-100 rounded-lg">
-                  <Sparkles className="h-5 w-5 text-blue-600" />
+                  <BarChart3 className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl">Processing Results</CardTitle>
-                  <CardDescription className="text-slate-500">View your adapted content and analysis</CardDescription>
+                  <CardTitle className="text-xl">Processing Results & Forecasting</CardTitle>
+                  <CardDescription className="text-slate-500">
+                    View your adapted content, analysis, and engagement predictions
+                  </CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -230,6 +307,141 @@ export function ContentPipelineInterface() {
                     </div>
                   </div>
 
+                  {/* Engagement Forecasting */}
+                  <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
+                    <h3 className="font-semibold mb-4 text-slate-800 flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4 text-blue-600" />
+                      Engagement Forecasting
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Twitter Forecast */}
+                      <div className="bg-white p-3 rounded-lg border border-blue-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Twitter className="h-4 w-4 text-blue-500" />
+                          <span className="font-medium text-sm">Twitter</span>
+                        </div>
+                        <div className="space-y-1 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-slate-600">Likes:</span>
+                            <span className="font-medium">{result.engagement_forecast.twitter.predicted_likes}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-600">Retweets:</span>
+                            <span className="font-medium">{result.engagement_forecast.twitter.predicted_retweets}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-600">Score:</span>
+                            <Badge
+                              className={`text-xs ${result.engagement_forecast.twitter.engagement_score >= 70 ? "bg-green-100 text-green-700" : result.engagement_forecast.twitter.engagement_score >= 50 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}
+                            >
+                              {result.engagement_forecast.twitter.engagement_score}/100
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-1 mt-2 text-slate-600">
+                            <Clock className="h-3 w-3" />
+                            <span className="text-xs">{result.engagement_forecast.twitter.optimal_posting_time}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* LinkedIn Forecast */}
+                      <div className="bg-white p-3 rounded-lg border border-blue-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Linkedin className="h-4 w-4 text-blue-600" />
+                          <span className="font-medium text-sm">LinkedIn</span>
+                        </div>
+                        <div className="space-y-1 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-slate-600">Likes:</span>
+                            <span className="font-medium">{result.engagement_forecast.linkedin.predicted_likes}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-600">Shares:</span>
+                            <span className="font-medium">{result.engagement_forecast.linkedin.predicted_shares}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-600">Score:</span>
+                            <Badge
+                              className={`text-xs ${result.engagement_forecast.linkedin.engagement_score >= 70 ? "bg-green-100 text-green-700" : result.engagement_forecast.linkedin.engagement_score >= 50 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}
+                            >
+                              {result.engagement_forecast.linkedin.engagement_score}/100
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-1 mt-2 text-slate-600">
+                            <Clock className="h-3 w-3" />
+                            <span className="text-xs">{result.engagement_forecast.linkedin.optimal_posting_time}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Newsletter Forecast */}
+                      <div className="bg-white p-3 rounded-lg border border-blue-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Mail className="h-4 w-4 text-green-600" />
+                          <span className="font-medium text-sm">Newsletter</span>
+                        </div>
+                        <div className="space-y-1 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-slate-600">Open Rate:</span>
+                            <span className="font-medium">
+                              {result.engagement_forecast.newsletter.predicted_open_rate.toFixed(1)}%
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-600">Click Rate:</span>
+                            <span className="font-medium">
+                              {result.engagement_forecast.newsletter.predicted_click_rate.toFixed(1)}%
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-600">Score:</span>
+                            <Badge
+                              className={`text-xs ${result.engagement_forecast.newsletter.engagement_score >= 70 ? "bg-green-100 text-green-700" : result.engagement_forecast.newsletter.engagement_score >= 50 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}
+                            >
+                              {result.engagement_forecast.newsletter.engagement_score}/100
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-1 mt-2 text-slate-600">
+                            <Clock className="h-3 w-3" />
+                            <span className="text-xs">{result.engagement_forecast.newsletter.optimal_send_time}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Optimization Suggestions */}
+                  <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border border-yellow-100">
+                    <h3 className="font-semibold mb-4 text-slate-800 flex items-center gap-2">
+                      <Lightbulb className="h-4 w-4 text-yellow-600" />
+                      Optimization Suggestions
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-medium text-sm mb-2 text-slate-700">Hashtag Recommendations</h4>
+                        <ul className="text-xs text-slate-600 space-y-1">
+                          {result.optimization_suggestions.hashtag_recommendations.slice(0, 2).map((suggestion, i) => (
+                            <li key={i} className="flex items-start gap-1">
+                              <span className="text-yellow-500 mt-0.5">•</span>
+                              {suggestion}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-sm mb-2 text-slate-700">Content Improvements</h4>
+                        <ul className="text-xs text-slate-600 space-y-1">
+                          {result.optimization_suggestions.keyword_suggestions.slice(0, 2).map((suggestion, i) => (
+                            <li key={i} className="flex items-start gap-1">
+                              <span className="text-yellow-500 mt-0.5">•</span>
+                              {suggestion}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Platform Content */}
                   <div className="space-y-4">
                     <h3 className="font-semibold text-slate-800">Platform-Adapted Content</h3>
@@ -237,51 +449,215 @@ export function ContentPipelineInterface() {
                     {/* Twitter */}
                     <div className="p-4 border border-slate-200 rounded-xl bg-white hover:shadow-md transition-all duration-200">
                       <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-semibold text-slate-800">Twitter</h4>
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                          {result.platforms.twitter.character_count} chars
-                        </Badge>
+                        <h4 className="font-semibold text-slate-800 flex items-center gap-2">
+                          <Twitter className="h-4 w-4 text-blue-500" />
+                          Twitter
+                          <Badge
+                            className={`ml-2 text-xs ${result.engagement_forecast.twitter.engagement_score >= 70 ? "bg-green-100 text-green-700" : result.engagement_forecast.twitter.engagement_score >= 50 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}
+                          >
+                            {result.engagement_forecast.twitter.engagement_score}/100
+                          </Badge>
+                        </h4>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            {
+                              (showOptimized.twitter
+                                ? result.platforms.twitter.optimized_content
+                                : result.platforms.twitter.content
+                              )?.length
+                            }{" "}
+                            chars
+                          </Badge>
+                          {result.platforms.twitter.optimized_content && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setShowOptimized((prev) => ({ ...prev, twitter: !prev.twitter }))}
+                              className="text-xs"
+                            >
+                              {showOptimized.twitter ? "Original" : "Optimized"}
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-sm mb-3 text-slate-700 leading-relaxed">{result.platforms.twitter.content}</p>
-                      <div className="flex flex-wrap gap-2">
+                      <p className="text-sm mb-3 text-slate-700 leading-relaxed">
+                        {showOptimized.twitter
+                          ? result.platforms.twitter.optimized_content
+                          : result.platforms.twitter.content}
+                      </p>
+                      <div className="flex flex-wrap gap-2 mb-4">
                         {result.platforms.twitter.hashtags.map((tag, i) => (
                           <Badge key={i} className="bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs">
                             {tag}
                           </Badge>
                         ))}
                       </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            shareToTwitter(result.platforms.twitter.content, result.platforms.twitter.hashtags)
+                          }
+                          className="bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2"
+                        >
+                          <Twitter className="h-3 w-3" />
+                          Share
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            copyToClipboard(
+                              `${result.platforms.twitter.content} ${result.platforms.twitter.hashtags.join(" ")}`,
+                              "twitter",
+                            )
+                          }
+                          className="flex items-center gap-2"
+                        >
+                          <Copy className="h-3 w-3" />
+                          {copiedPlatform === "twitter" ? "Copied!" : "Copy"}
+                        </Button>
+                      </div>
                     </div>
 
                     {/* LinkedIn */}
                     <div className="p-4 border border-slate-200 rounded-xl bg-white hover:shadow-md transition-all duration-200">
                       <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-semibold text-slate-800">LinkedIn</h4>
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                          {result.platforms.linkedin.character_count} chars
-                        </Badge>
+                        <h4 className="font-semibold text-slate-800 flex items-center gap-2">
+                          <Linkedin className="h-4 w-4 text-blue-600" />
+                          LinkedIn
+                          <Badge
+                            className={`ml-2 text-xs ${result.engagement_forecast.linkedin.engagement_score >= 70 ? "bg-green-100 text-green-700" : result.engagement_forecast.linkedin.engagement_score >= 50 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}
+                          >
+                            {result.engagement_forecast.linkedin.engagement_score}/100
+                          </Badge>
+                        </h4>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            {
+                              (showOptimized.linkedin
+                                ? result.platforms.linkedin.optimized_content
+                                : result.platforms.linkedin.content
+                              )?.length
+                            }{" "}
+                            chars
+                          </Badge>
+                          {result.platforms.linkedin.optimized_content && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setShowOptimized((prev) => ({ ...prev, linkedin: !prev.linkedin }))}
+                              className="text-xs"
+                            >
+                              {showOptimized.linkedin ? "Original" : "Optimized"}
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-sm mb-3 text-slate-700 leading-relaxed">{result.platforms.linkedin.content}</p>
-                      <div className="flex flex-wrap gap-2">
+                      <p className="text-sm mb-3 text-slate-700 leading-relaxed">
+                        {showOptimized.linkedin
+                          ? result.platforms.linkedin.optimized_content
+                          : result.platforms.linkedin.content}
+                      </p>
+                      <div className="flex flex-wrap gap-2 mb-4">
                         {result.platforms.linkedin.hashtags.map((tag, i) => (
                           <Badge key={i} className="bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs">
                             {tag}
                           </Badge>
                         ))}
                       </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => shareToLinkedIn(result.platforms.linkedin.content)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+                        >
+                          <Linkedin className="h-3 w-3" />
+                          Share
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            copyToClipboard(
+                              `${result.platforms.linkedin.content} ${result.platforms.linkedin.hashtags.join(" ")}`,
+                              "linkedin",
+                            )
+                          }
+                          className="flex items-center gap-2"
+                        >
+                          <Copy className="h-3 w-3" />
+                          {copiedPlatform === "linkedin" ? "Copied!" : "Copy"}
+                        </Button>
+                      </div>
                     </div>
 
                     {/* Newsletter */}
                     <div className="p-4 border border-slate-200 rounded-xl bg-white hover:shadow-md transition-all duration-200">
                       <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-semibold text-slate-800">Newsletter</h4>
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                          {result.platforms.newsletter.word_count} words
-                        </Badge>
+                        <h4 className="font-semibold text-slate-800 flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-green-600" />
+                          Newsletter
+                          <Badge
+                            className={`ml-2 text-xs ${result.engagement_forecast.newsletter.engagement_score >= 70 ? "bg-green-100 text-green-700" : result.engagement_forecast.newsletter.engagement_score >= 50 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}
+                          >
+                            {result.engagement_forecast.newsletter.engagement_score}/100
+                          </Badge>
+                        </h4>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            {result.platforms.newsletter.word_count} words
+                          </Badge>
+                          {result.platforms.newsletter.optimized_subject && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setShowOptimized((prev) => ({ ...prev, newsletter: !prev.newsletter }))}
+                              className="text-xs"
+                            >
+                              {showOptimized.newsletter ? "Original" : "Optimized"}
+                            </Button>
+                          )}
+                        </div>
                       </div>
                       <p className="text-sm font-semibold mb-2 text-slate-800">
-                        Subject: {result.platforms.newsletter.subject_line}
+                        Subject:{" "}
+                        {showOptimized.newsletter
+                          ? result.platforms.newsletter.optimized_subject
+                          : result.platforms.newsletter.subject_line}
                       </p>
-                      <p className="text-sm text-slate-700 leading-relaxed">{result.platforms.newsletter.content}</p>
+                      <p className="text-sm text-slate-700 leading-relaxed mb-4">
+                        {result.platforms.newsletter.content}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            openEmailClient(
+                              result.platforms.newsletter.subject_line,
+                              result.platforms.newsletter.content,
+                            )
+                          }
+                          className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+                        >
+                          <Mail className="h-3 w-3" />
+                          Open Email
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            copyToClipboard(
+                              `Subject: ${result.platforms.newsletter.subject_line}\n\n${result.platforms.newsletter.content}`,
+                              "newsletter",
+                            )
+                          }
+                          className="flex items-center gap-2"
+                        >
+                          <Copy className="h-3 w-3" />
+                          {copiedPlatform === "newsletter" ? "Copied!" : "Copy"}
+                        </Button>
+                      </div>
                     </div>
                   </div>
 
@@ -320,10 +696,10 @@ export function ContentPipelineInterface() {
               ) : (
                 <div className="text-center text-slate-400 py-12 animate-fade-in-up">
                   <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
-                    <Send className="h-8 w-8 text-slate-400" />
+                    <BarChart3 className="h-8 w-8 text-slate-400" />
                   </div>
-                  <p className="text-lg font-medium">Ready to process your content</p>
-                  <p className="text-sm mt-1">Enter your content and click process to see results</p>
+                  <p className="text-lg font-medium">Ready to forecast engagement</p>
+                  <p className="text-sm mt-1">Enter your content and get AI-powered predictions</p>
                 </div>
               )}
             </CardContent>

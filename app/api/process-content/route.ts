@@ -12,21 +12,52 @@ interface ProcessedContent {
     label: string
     confidence: number
   }
+  engagement_forecast: {
+    twitter: {
+      predicted_likes: number
+      predicted_retweets: number
+      predicted_replies: number
+      engagement_score: number
+      optimal_posting_time: string
+    }
+    linkedin: {
+      predicted_likes: number
+      predicted_shares: number
+      predicted_comments: number
+      engagement_score: number
+      optimal_posting_time: string
+    }
+    newsletter: {
+      predicted_open_rate: number
+      predicted_click_rate: number
+      engagement_score: number
+      optimal_send_time: string
+    }
+  }
+  optimization_suggestions: {
+    hashtag_recommendations: string[]
+    keyword_suggestions: string[]
+    tone_adjustments: string[]
+    timing_recommendations: string[]
+  }
   platforms: {
     twitter: {
       content: string
       hashtags: string[]
       character_count: number
+      optimized_content?: string
     }
     linkedin: {
       content: string
       hashtags: string[]
       character_count: number
+      optimized_content?: string
     }
     newsletter: {
       content: string
       subject_line: string
       word_count: number
+      optimized_subject?: string
     }
   }
   metadata: {
@@ -196,6 +227,237 @@ function adaptForPlatform(content: string, platform: string, audience?: string, 
   return adaptedContent
 }
 
+function predictEngagement(content: string, platform: string, sentiment: any) {
+  const contentLength = content.length
+  const wordCount = content.split(/\s+/).length
+  const hasHashtags = content.includes("#")
+  const hasEmojis = /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]/u.test(
+    content,
+  )
+  const hasQuestions = content.includes("?")
+  const hasCallToAction = /\b(share|comment|like|follow|subscribe|click|learn more|read more)\b/i.test(content)
+
+  // Base engagement score calculation
+  let baseScore = 50
+
+  // Sentiment impact
+  if (sentiment.label === "positive") baseScore += 15
+  else if (sentiment.label === "negative") baseScore += 5
+
+  // Content features impact
+  if (hasHashtags) baseScore += 10
+  if (hasEmojis) baseScore += 8
+  if (hasQuestions) baseScore += 12
+  if (hasCallToAction) baseScore += 15
+
+  // Platform-specific calculations
+  switch (platform) {
+    case "twitter":
+      // Optimal length for Twitter is 71-100 characters
+      if (contentLength >= 71 && contentLength <= 100) baseScore += 10
+      else if (contentLength > 280) baseScore -= 20
+
+      return {
+        predicted_likes: Math.round(baseScore * 2.3 + Math.random() * 20),
+        predicted_retweets: Math.round(baseScore * 0.8 + Math.random() * 10),
+        predicted_replies: Math.round(baseScore * 0.5 + Math.random() * 8),
+        engagement_score: Math.min(100, baseScore),
+        optimal_posting_time: getOptimalPostingTime("twitter"),
+      }
+
+    case "linkedin":
+      // LinkedIn prefers longer, professional content
+      if (wordCount >= 50 && wordCount <= 200) baseScore += 15
+      if (content.includes("professional") || content.includes("business")) baseScore += 10
+
+      return {
+        predicted_likes: Math.round(baseScore * 1.8 + Math.random() * 15),
+        predicted_shares: Math.round(baseScore * 0.6 + Math.random() * 8),
+        predicted_comments: Math.round(baseScore * 0.9 + Math.random() * 12),
+        engagement_score: Math.min(100, baseScore),
+        optimal_posting_time: getOptimalPostingTime("linkedin"),
+      }
+
+    case "newsletter":
+      // Newsletter engagement based on subject line and content quality
+      const subjectScore = content.split(".")[0].length <= 50 ? 10 : -5
+      baseScore += subjectScore
+
+      return {
+        predicted_open_rate: Math.min(45, Math.max(15, baseScore * 0.6)),
+        predicted_click_rate: Math.min(15, Math.max(2, baseScore * 0.2)),
+        engagement_score: Math.min(100, baseScore),
+        optimal_send_time: getOptimalPostingTime("newsletter"),
+      }
+
+    default:
+      return {}
+  }
+}
+
+function getOptimalPostingTime(platform: string): string {
+  const now = new Date()
+  const currentHour = now.getHours()
+
+  switch (platform) {
+    case "twitter":
+      // Best times: 9 AM, 1-3 PM, 5 PM
+      if (currentHour < 9) return "9:00 AM today"
+      else if (currentHour < 13) return "1:00 PM today"
+      else if (currentHour < 17) return "5:00 PM today"
+      else return "9:00 AM tomorrow"
+
+    case "linkedin":
+      // Best times: 8-10 AM, 12 PM, 5-6 PM on weekdays
+      if (currentHour < 8) return "8:00 AM today"
+      else if (currentHour < 12) return "12:00 PM today"
+      else if (currentHour < 17) return "5:00 PM today"
+      else return "8:00 AM tomorrow"
+
+    case "newsletter":
+      // Best times: Tuesday-Thursday, 10 AM or 2 PM
+      const dayOfWeek = now.getDay()
+      if (dayOfWeek >= 2 && dayOfWeek <= 4) {
+        if (currentHour < 10) return "10:00 AM today"
+        else if (currentHour < 14) return "2:00 PM today"
+        else return "10:00 AM tomorrow"
+      } else {
+        return "Tuesday 10:00 AM"
+      }
+
+    default:
+      return "Optimal time not available"
+  }
+}
+
+function generateOptimizedHashtags(content: string, platform: string): string[] {
+  const words = content
+    .toLowerCase()
+    .split(/\W+/)
+    .filter((word) => word.length > 3)
+  const trendingHashtags = {
+    twitter: ["#AI", "#Tech", "#Innovation", "#Startup", "#Growth", "#Digital", "#Future", "#Success"],
+    linkedin: [
+      "#Leadership",
+      "#Professional",
+      "#Business",
+      "#Career",
+      "#Networking",
+      "#Industry",
+      "#Strategy",
+      "#Growth",
+    ],
+    newsletter: [],
+  }
+
+  const contentBasedTags = []
+
+  // AI and technology related
+  if (words.some((w) => ["ai", "artificial", "intelligence", "machine", "learning"].includes(w))) {
+    contentBasedTags.push("#AI", "#MachineLearning", "#Technology")
+  }
+
+  // Business related
+  if (words.some((w) => ["business", "startup", "entrepreneur", "company"].includes(w))) {
+    contentBasedTags.push("#Business", "#Startup", "#Entrepreneur")
+  }
+
+  // Marketing related
+  if (words.some((w) => ["marketing", "brand", "social", "content"].includes(w))) {
+    contentBasedTags.push("#Marketing", "#Branding", "#ContentMarketing")
+  }
+
+  // Combine content-based and trending hashtags
+  const platformTags = trendingHashtags[platform as keyof typeof trendingHashtags] || []
+  const allTags = [...new Set([...contentBasedTags, ...platformTags])]
+
+  return allTags.slice(0, 5)
+}
+
+function generateOptimizationSuggestions(content: string, sentiment: any, platforms: any) {
+  const suggestions = {
+    hashtag_recommendations: [],
+    keyword_suggestions: [],
+    tone_adjustments: [],
+    timing_recommendations: [],
+  }
+
+  // Hashtag recommendations
+  suggestions.hashtag_recommendations = [
+    "Add trending hashtags for better discoverability",
+    "Use platform-specific hashtags",
+    "Include branded hashtags if applicable",
+    "Mix popular and niche hashtags",
+  ]
+
+  // Keyword suggestions
+  const hasKeywords = /\b(amazing|incredible|breakthrough|innovative|revolutionary)\b/i.test(content)
+  if (!hasKeywords) {
+    suggestions.keyword_suggestions.push('Add power words like "amazing", "breakthrough", or "innovative"')
+  }
+
+  if (!content.includes("?")) {
+    suggestions.keyword_suggestions.push("Consider adding a question to increase engagement")
+  }
+
+  // Tone adjustments
+  if (sentiment.label === "neutral") {
+    suggestions.tone_adjustments.push("Consider adding more emotional language to increase engagement")
+  }
+
+  if (sentiment.confidence < 0.7) {
+    suggestions.tone_adjustments.push("Clarify the tone to make the message more impactful")
+  }
+
+  // Timing recommendations
+  suggestions.timing_recommendations = [
+    "Post during peak hours for your audience",
+    "Consider time zones of your target audience",
+    "Use scheduling tools for optimal timing",
+    "Test different posting times to find what works best",
+  ]
+
+  return suggestions
+}
+
+function optimizeContentForEngagement(content: string, platform: string, sentiment: any) {
+  let optimizedContent = content
+
+  // Add engagement-boosting elements
+  if (!content.includes("?") && platform !== "newsletter") {
+    // Add engaging questions
+    const questions = ["What do you think?", "Have you experienced this?", "What's your take on this?", "Do you agree?"]
+    optimizedContent += " " + questions[Math.floor(Math.random() * questions.length)]
+  }
+
+  // Platform-specific optimizations
+  switch (platform) {
+    case "twitter":
+      // Add trending elements
+      if (!optimizedContent.includes("#")) {
+        optimizedContent += " #Innovation"
+      }
+      break
+
+    case "linkedin":
+      // Add professional call-to-action
+      if (!optimizedContent.includes("share") && !optimizedContent.includes("comment")) {
+        optimizedContent += "\n\nShare your thoughts in the comments below!"
+      }
+      break
+
+    case "newsletter":
+      // Optimize subject line
+      const words = content.split(" ")
+      if (words.length > 8) {
+        return content.split(".")[0].substring(0, 47) + "..."
+      }
+      break
+  }
+
+  return optimizedContent
+}
+
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
 
@@ -211,10 +473,24 @@ export async function POST(request: NextRequest) {
     // Perform sentiment analysis
     const sentiment = analyzeSentiment(content)
 
+    const twitterForecast = predictEngagement(content, "twitter", sentiment)
+    const linkedinForecast = predictEngagement(content, "linkedin", sentiment)
+    const newsletterForecast = predictEngagement(content, "newsletter", sentiment)
+
     // Adapt content for each platform
     const twitterContent = adaptForPlatform(content, "twitter", target_audience, tone)
     const linkedinContent = adaptForPlatform(content, "linkedin", target_audience, tone)
     const newsletterContent = adaptForPlatform(content, "newsletter", target_audience, tone)
+
+    const optimizedTwitter = optimizeContentForEngagement(twitterContent, "twitter", sentiment)
+    const optimizedLinkedIn = optimizeContentForEngagement(linkedinContent, "linkedin", sentiment)
+    const optimizedNewsletterSubject = optimizeContentForEngagement(content, "newsletter", sentiment)
+
+    const optimizationSuggestions = generateOptimizationSuggestions(content, sentiment, {
+      twitter: twitterContent,
+      linkedin: linkedinContent,
+      newsletter: newsletterContent,
+    })
 
     // Generate subject line for newsletter
     const subjectLine = content.split(".")[0].substring(0, 50) + (content.length > 50 ? "..." : "")
@@ -222,21 +498,30 @@ export async function POST(request: NextRequest) {
     const result: ProcessedContent = {
       original_content: content,
       sentiment,
+      engagement_forecast: {
+        twitter: twitterForecast,
+        linkedin: linkedinForecast,
+        newsletter: newsletterForecast,
+      },
+      optimization_suggestions: optimizationSuggestions,
       platforms: {
         twitter: {
           content: twitterContent,
-          hashtags: extractHashtags(content, "twitter"),
+          hashtags: generateOptimizedHashtags(content, "twitter"),
           character_count: twitterContent.length,
+          optimized_content: optimizedTwitter,
         },
         linkedin: {
           content: linkedinContent,
-          hashtags: extractHashtags(content, "linkedin"),
+          hashtags: generateOptimizedHashtags(content, "linkedin"),
           character_count: linkedinContent.length,
+          optimized_content: optimizedLinkedIn,
         },
         newsletter: {
           content: newsletterContent,
           subject_line: subjectLine,
           word_count: newsletterContent.split(/\s+/).length,
+          optimized_subject: optimizedNewsletterSubject,
         },
       },
       metadata: {
