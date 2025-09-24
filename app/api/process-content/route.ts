@@ -12,6 +12,24 @@ interface ProcessedContent {
     label: string
     confidence: number
   }
+  visual_content: {
+    twitter: {
+      suggested_image: string
+      image_style: string
+      alt_text: string
+    }
+    linkedin: {
+      suggested_image: string
+      image_style: string
+      alt_text: string
+    }
+    newsletter: {
+      suggested_image: string
+      image_style: string
+      alt_text: string
+      infographic_elements?: string[]
+    }
+  }
   engagement_forecast: {
     twitter: {
       predicted_likes: number
@@ -458,6 +476,89 @@ function optimizeContentForEngagement(content: string, platform: string, sentime
   return optimizedContent
 }
 
+function generateVisualContent(content: string, platform: string, sentiment: any) {
+  const words = content.toLowerCase().split(/\W+/)
+
+  // Determine image style based on content and sentiment
+  let imageStyle = "modern professional"
+  if (sentiment.label === "positive") {
+    imageStyle = "bright vibrant uplifting"
+  } else if (sentiment.label === "negative") {
+    imageStyle = "serious professional muted"
+  }
+
+  // Generate content-based image suggestions
+  let imageQuery = "abstract professional background"
+
+  // Technology content
+  if (words.some((w) => ["tech", "technology", "ai", "artificial", "digital", "innovation"].includes(w))) {
+    imageQuery = "futuristic technology digital innovation abstract"
+  }
+  // Business content
+  else if (words.some((w) => ["business", "startup", "company", "growth", "success"].includes(w))) {
+    imageQuery = "business growth success professional modern"
+  }
+  // Marketing content
+  else if (words.some((w) => ["marketing", "brand", "social", "content", "audience"].includes(w))) {
+    imageQuery = "marketing social media colorful engaging"
+  }
+  // Data/Analytics content
+  else if (words.some((w) => ["data", "analytics", "chart", "graph", "metrics"].includes(w))) {
+    imageQuery = "data visualization charts graphs analytics"
+  }
+  // Creative content
+  else if (words.some((w) => ["creative", "design", "art", "visual", "inspiration"].includes(w))) {
+    imageQuery = "creative design artistic colorful inspiration"
+  }
+
+  // Platform-specific adjustments
+  switch (platform) {
+    case "twitter":
+      imageQuery += " square format social media"
+      break
+    case "linkedin":
+      imageQuery += " professional business horizontal"
+      break
+    case "newsletter":
+      imageQuery += " header banner wide format"
+      break
+  }
+
+  // Generate alt text
+  const altText = `${imageStyle} image representing ${content.split(".")[0].toLowerCase()}`
+
+  const result = {
+    suggested_image: imageQuery,
+    image_style: imageStyle,
+    alt_text: altText,
+  }
+
+  // Add infographic elements for newsletter
+  if (platform === "newsletter") {
+    const infographicElements = []
+    if (words.some((w) => ["steps", "process", "how", "guide"].includes(w))) {
+      infographicElements.push("Step-by-step process diagram")
+    }
+    if (words.some((w) => ["data", "statistics", "percent", "number"].includes(w))) {
+      infographicElements.push("Statistical charts and graphs")
+    }
+    if (words.some((w) => ["comparison", "vs", "versus", "compare"].includes(w))) {
+      infographicElements.push("Comparison table or chart")
+    }
+    if (words.some((w) => ["timeline", "history", "evolution", "progress"].includes(w))) {
+      infographicElements.push("Timeline visualization")
+    }
+
+    return {
+      ...result,
+      infographic_elements:
+        infographicElements.length > 0 ? infographicElements : ["Key points visualization", "Data highlights"],
+    }
+  }
+
+  return result
+}
+
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
 
@@ -476,6 +577,10 @@ export async function POST(request: NextRequest) {
     const twitterForecast = predictEngagement(content, "twitter", sentiment)
     const linkedinForecast = predictEngagement(content, "linkedin", sentiment)
     const newsletterForecast = predictEngagement(content, "newsletter", sentiment)
+
+    const twitterVisual = generateVisualContent(content, "twitter", sentiment)
+    const linkedinVisual = generateVisualContent(content, "linkedin", sentiment)
+    const newsletterVisual = generateVisualContent(content, "newsletter", sentiment)
 
     // Adapt content for each platform
     const twitterContent = adaptForPlatform(content, "twitter", target_audience, tone)
@@ -498,6 +603,11 @@ export async function POST(request: NextRequest) {
     const result: ProcessedContent = {
       original_content: content,
       sentiment,
+      visual_content: {
+        twitter: twitterVisual,
+        linkedin: linkedinVisual,
+        newsletter: newsletterVisual,
+      },
       engagement_forecast: {
         twitter: twitterForecast,
         linkedin: linkedinForecast,
