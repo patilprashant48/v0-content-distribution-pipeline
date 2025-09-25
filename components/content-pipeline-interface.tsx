@@ -21,10 +21,6 @@ import {
   Clock,
   Lightbulb,
   BarChart3,
-  ImageIcon,
-  Palette,
-  Eye,
-  Wand2,
 } from "lucide-react"
 
 interface ProcessedContent {
@@ -32,24 +28,6 @@ interface ProcessedContent {
   sentiment: {
     label: string
     confidence: number
-  }
-  visual_content: {
-    twitter: {
-      suggested_image: string
-      image_style: string
-      alt_text: string
-    }
-    linkedin: {
-      suggested_image: string
-      image_style: string
-      alt_text: string
-    }
-    newsletter: {
-      suggested_image: string
-      image_style: string
-      alt_text: string
-      infographic_elements?: string[]
-    }
   }
   engagement_forecast: {
     twitter: {
@@ -195,16 +173,16 @@ export function ContentPipelineInterface() {
         <div className="text-center mb-12 animate-fade-in-up">
           <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
             <Sparkles className="h-4 w-4" />
-            AI-Powered Content Distribution with Visual Generation & Engagement Forecasting
+            AI-Powered Content Distribution with Engagement Forecasting
           </div>
           <h1 className="text-6xl font-bold text-balance mb-6">
             <span className="gradient-text">Super fast content</span>
             <br />
-            <span className="text-slate-900">with visuals & predictions</span>
+            <span className="text-slate-900">with smart predictions</span>
           </h1>
           <p className="text-xl text-slate-600 text-balance max-w-2xl mx-auto leading-relaxed">
-            Transform your content for multiple platforms with intelligent adaptation, AI-generated visuals, sentiment
-            analysis, and engagement forecasting.
+            Transform your content for multiple platforms with intelligent adaptation, sentiment analysis, and
+            engagement forecasting.
           </p>
         </div>
 
@@ -298,9 +276,9 @@ export function ContentPipelineInterface() {
                   <BarChart3 className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl">Processing Results & Visual Generation</CardTitle>
+                  <CardTitle className="text-xl">Processing Results & Engagement Forecasting</CardTitle>
                   <CardDescription className="text-slate-500">
-                    View your adapted content, AI-generated visuals, analysis, and engagement predictions
+                    View your adapted content, analysis, and engagement predictions
                   </CardDescription>
                 </div>
               </div>
@@ -326,120 +304,6 @@ export function ContentPipelineInterface() {
                       <span className="text-sm text-slate-600 font-medium">
                         {(result.sentiment.confidence * 100).toFixed(1)}% confidence
                       </span>
-                    </div>
-                  </div>
-
-                  {/* Visual Content Generation */}
-                  <div className="p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-xl border border-green-100">
-                    <h3 className="font-semibold mb-4 text-slate-800 flex items-center gap-2">
-                      <Wand2 className="h-4 w-4 text-green-600" />
-                      AI-Generated Visual Content
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {/* Twitter Visual */}
-                      <div className="bg-white p-3 rounded-lg border border-green-200">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Twitter className="h-4 w-4 text-blue-500" />
-                          <span className="font-medium text-sm">Twitter Image</span>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="w-full h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center border-2 border-dashed border-blue-300">
-                            <div className="text-center">
-                              <ImageIcon className="h-6 w-6 text-blue-500 mx-auto mb-1" />
-                              <p className="text-xs text-blue-600 font-medium">AI Generated</p>
-                            </div>
-                          </div>
-                          <div className="text-xs space-y-1">
-                            <div className="flex items-center gap-1">
-                              <Palette className="h-3 w-3 text-slate-500" />
-                              <span className="text-slate-600">{result.visual_content.twitter.image_style}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Eye className="h-3 w-3 text-slate-500" />
-                              <span className="text-slate-600 truncate">
-                                {result.visual_content.twitter.suggested_image}
-                              </span>
-                            </div>
-                          </div>
-                          <Button size="sm" variant="outline" className="w-full text-xs bg-transparent">
-                            <Wand2 className="h-3 w-3 mr-1" />
-                            Generate Image
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* LinkedIn Visual */}
-                      <div className="bg-white p-3 rounded-lg border border-green-200">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Linkedin className="h-4 w-4 text-blue-600" />
-                          <span className="font-medium text-sm">LinkedIn Image</span>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="w-full h-20 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center border-2 border-dashed border-blue-300">
-                            <div className="text-center">
-                              <ImageIcon className="h-6 w-6 text-blue-600 mx-auto mb-1" />
-                              <p className="text-xs text-blue-700 font-medium">AI Generated</p>
-                            </div>
-                          </div>
-                          <div className="text-xs space-y-1">
-                            <div className="flex items-center gap-1">
-                              <Palette className="h-3 w-3 text-slate-500" />
-                              <span className="text-slate-600">{result.visual_content.linkedin.image_style}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Eye className="h-3 w-3 text-slate-500" />
-                              <span className="text-slate-600 truncate">
-                                {result.visual_content.linkedin.suggested_image}
-                              </span>
-                            </div>
-                          </div>
-                          <Button size="sm" variant="outline" className="w-full text-xs bg-transparent">
-                            <Wand2 className="h-3 w-3 mr-1" />
-                            Generate Image
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Newsletter Visual */}
-                      <div className="bg-white p-3 rounded-lg border border-green-200">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Mail className="h-4 w-4 text-green-600" />
-                          <span className="font-medium text-sm">Newsletter Visual</span>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="w-full h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg flex items-center justify-center border-2 border-dashed border-green-300">
-                            <div className="text-center">
-                              <ImageIcon className="h-6 w-6 text-green-600 mx-auto mb-1" />
-                              <p className="text-xs text-green-700 font-medium">Header + Infographic</p>
-                            </div>
-                          </div>
-                          <div className="text-xs space-y-1">
-                            <div className="flex items-center gap-1">
-                              <Palette className="h-3 w-3 text-slate-500" />
-                              <span className="text-slate-600">{result.visual_content.newsletter.image_style}</span>
-                            </div>
-                            {result.visual_content.newsletter.infographic_elements && (
-                              <div className="text-xs">
-                                <p className="text-slate-600 font-medium mb-1">Infographic Elements:</p>
-                                <ul className="text-slate-500 space-y-0.5">
-                                  {result.visual_content.newsletter.infographic_elements
-                                    .slice(0, 2)
-                                    .map((element, i) => (
-                                      <li key={i} className="flex items-start gap-1">
-                                        <span className="text-green-500 mt-0.5">•</span>
-                                        <span className="truncate">{element}</span>
-                                      </li>
-                                    ))}
-                                </ul>
-                              </div>
-                            )}
-                          </div>
-                          <Button size="sm" variant="outline" className="w-full text-xs bg-transparent">
-                            <Wand2 className="h-3 w-3 mr-1" />
-                            Generate Visual
-                          </Button>
-                        </div>
-                      </div>
                     </div>
                   </div>
 
@@ -580,7 +444,7 @@ export function ContentPipelineInterface() {
 
                   {/* Platform Content */}
                   <div className="space-y-4">
-                    <h3 className="font-semibold text-slate-800">Platform-Adapted Content with Visuals</h3>
+                    <h3 className="font-semibold text-slate-800">Platform-Adapted Content</h3>
 
                     {/* Twitter */}
                     <div className="p-4 border border-slate-200 rounded-xl bg-white hover:shadow-md transition-all duration-200">
@@ -615,22 +479,6 @@ export function ContentPipelineInterface() {
                             </Button>
                           )}
                         </div>
-                      </div>
-
-                      {/* Twitter Visual Preview */}
-                      <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <div className="flex items-center gap-2 mb-2">
-                          <ImageIcon className="h-4 w-4 text-blue-600" />
-                          <span className="text-sm font-medium text-blue-800">Suggested Visual</span>
-                        </div>
-                        <div className="w-full h-32 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center border-2 border-dashed border-blue-300 mb-2">
-                          <div className="text-center">
-                            <Wand2 className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                            <p className="text-sm text-blue-600 font-medium">AI-Generated Image</p>
-                            <p className="text-xs text-blue-500">{result.visual_content.twitter.image_style}</p>
-                          </div>
-                        </div>
-                        <p className="text-xs text-slate-600 italic">{result.visual_content.twitter.alt_text}</p>
                       </div>
 
                       <p className="text-sm mb-3 text-slate-700 leading-relaxed">
@@ -708,22 +556,6 @@ export function ContentPipelineInterface() {
                         </div>
                       </div>
 
-                      {/* LinkedIn Visual Preview */}
-                      <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <div className="flex items-center gap-2 mb-2">
-                          <ImageIcon className="h-4 w-4 text-blue-600" />
-                          <span className="text-sm font-medium text-blue-800">Suggested Visual</span>
-                        </div>
-                        <div className="w-full h-32 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center border-2 border-dashed border-blue-300 mb-2">
-                          <div className="text-center">
-                            <Wand2 className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                            <p className="text-sm text-blue-700 font-medium">AI-Generated Image</p>
-                            <p className="text-xs text-blue-600">{result.visual_content.linkedin.image_style}</p>
-                          </div>
-                        </div>
-                        <p className="text-xs text-slate-600 italic">{result.visual_content.linkedin.alt_text}</p>
-                      </div>
-
                       <p className="text-sm mb-3 text-slate-700 leading-relaxed">
                         {showOptimized.linkedin
                           ? result.platforms.linkedin.optimized_content
@@ -789,34 +621,6 @@ export function ContentPipelineInterface() {
                             </Button>
                           )}
                         </div>
-                      </div>
-
-                      {/* Newsletter Visual Preview */}
-                      <div className="mb-3 p-3 bg-green-50 rounded-lg border border-green-200">
-                        <div className="flex items-center gap-2 mb-2">
-                          <ImageIcon className="h-4 w-4 text-green-600" />
-                          <span className="text-sm font-medium text-green-800">Header Image & Infographic</span>
-                        </div>
-                        <div className="w-full h-32 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg flex items-center justify-center border-2 border-dashed border-green-300 mb-2">
-                          <div className="text-center">
-                            <Wand2 className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                            <p className="text-sm text-green-700 font-medium">AI-Generated Visual</p>
-                            <p className="text-xs text-green-600">{result.visual_content.newsletter.image_style}</p>
-                          </div>
-                        </div>
-                        {result.visual_content.newsletter.infographic_elements && (
-                          <div className="text-xs">
-                            <p className="text-slate-700 font-medium mb-1">Suggested Infographic Elements:</p>
-                            <ul className="text-slate-600 space-y-0.5">
-                              {result.visual_content.newsletter.infographic_elements.map((element, i) => (
-                                <li key={i} className="flex items-start gap-1">
-                                  <span className="text-green-500 mt-0.5">•</span>
-                                  {element}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
                       </div>
 
                       <p className="text-sm font-semibold mb-2 text-slate-800">
@@ -897,10 +701,8 @@ export function ContentPipelineInterface() {
                   <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
                     <BarChart3 className="h-8 w-8 text-slate-400" />
                   </div>
-                  <p className="text-lg font-medium">Ready to generate content & visuals</p>
-                  <p className="text-sm mt-1">
-                    Enter your content and get AI-powered predictions with visual suggestions
-                  </p>
+                  <p className="text-lg font-medium">Ready to generate content</p>
+                  <p className="text-sm mt-1">Enter your content and get AI-powered predictions and optimization</p>
                 </div>
               )}
             </CardContent>
