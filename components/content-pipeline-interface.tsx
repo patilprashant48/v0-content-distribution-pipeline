@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import {
   Loader2,
-  Download,
   Sparkles,
   Zap,
   Target,
@@ -21,7 +20,13 @@ import {
   Clock,
   Lightbulb,
   BarChart3,
+  Rocket,
+  Brain,
+  Globe,
+  Star,
+  FileText,
 } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface ProcessedContent {
   original_content: string
@@ -85,6 +90,18 @@ interface ProcessedContent {
   }
 }
 
+const TARGET_AUDIENCE_OPTIONS = [
+  "Tech professionals",
+  "Entrepreneurs",
+  "Business leaders",
+  "Marketing professionals",
+  "Content creators",
+  "Investors",
+  "Students",
+  "General audience",
+  "Other",
+]
+
 export function ContentPipelineInterface() {
   const [content, setContent] = useState("")
   const [targetAudience, setTargetAudience] = useState("")
@@ -127,20 +144,119 @@ export function ContentPipelineInterface() {
   const downloadResults = () => {
     if (!result) return
 
-    const dataStr = JSON.stringify(result, null, 2)
-    const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(dataStr)
+    // Create PDF content structure
+    const pdfContent = `
+CONTENT DISTRIBUTION PIPELINE - ANALYSIS REPORT
+================================================
 
-    const exportFileDefaultName = "content-pipeline-results.json"
+ORIGINAL CONTENT
+${result.original_content}
 
-    const linkElement = document.createElement("a")
-    linkElement.setAttribute("href", dataUri)
-    linkElement.setAttribute("download", exportFileDefaultName)
-    linkElement.click()
+SENTIMENT ANALYSIS
+==================
+Sentiment: ${result.sentiment.label.toUpperCase()}
+Confidence: ${(result.sentiment.confidence * 100).toFixed(1)}%
+
+ENGAGEMENT FORECASTING
+======================
+TWITTER
+-------
+Predicted Likes: ${result.engagement_forecast.twitter.predicted_likes}
+Predicted Retweets: ${result.engagement_forecast.twitter.predicted_retweets}
+Predicted Replies: ${result.engagement_forecast.twitter.predicted_replies}
+Engagement Score: ${result.engagement_forecast.twitter.engagement_score}/100
+Optimal Posting Time: ${result.engagement_forecast.twitter.optimal_posting_time}
+
+LINKEDIN
+--------
+Predicted Likes: ${result.engagement_forecast.linkedin.predicted_likes}
+Predicted Shares: ${result.engagement_forecast.linkedin.predicted_shares}
+Predicted Comments: ${result.engagement_forecast.linkedin.predicted_comments}
+Engagement Score: ${result.engagement_forecast.linkedin.engagement_score}/100
+Optimal Posting Time: ${result.engagement_forecast.linkedin.optimal_posting_time}
+
+NEWSLETTER
+----------
+Predicted Open Rate: ${result.engagement_forecast.newsletter.predicted_open_rate.toFixed(1)}%
+Predicted Click Rate: ${result.engagement_forecast.newsletter.predicted_click_rate.toFixed(1)}%
+Engagement Score: ${result.engagement_forecast.newsletter.engagement_score}/100
+Optimal Send Time: ${result.engagement_forecast.newsletter.optimal_send_time}
+
+OPTIMIZATION SUGGESTIONS
+========================
+Hashtag Recommendations:
+${result.optimization_suggestions.hashtag_recommendations.map((s) => `- ${s}`).join("\n")}
+
+Keyword Suggestions:
+${result.optimization_suggestions.keyword_suggestions.map((s) => `- ${s}`).join("\n")}
+
+Tone Adjustments:
+${result.optimization_suggestions.tone_adjustments.map((s) => `- ${s}`).join("\n")}
+
+Timing Recommendations:
+${result.optimization_suggestions.timing_recommendations.map((s) => `- ${s}`).join("\n")}
+
+PLATFORM-ADAPTED CONTENT
+=========================
+TWITTER
+-------
+Content: ${result.platforms.twitter.content}
+Hashtags: ${result.platforms.twitter.hashtags.join(" ")}
+Character Count: ${result.platforms.twitter.character_count}
+
+LINKEDIN
+--------
+Content: ${result.platforms.linkedin.content}
+Hashtags: ${result.platforms.linkedin.hashtags.join(" ")}
+Character Count: ${result.platforms.linkedin.character_count}
+
+NEWSLETTER
+----------
+Subject Line: ${result.platforms.newsletter.subject_line}
+Content: ${result.platforms.newsletter.content}
+Word Count: ${result.platforms.newsletter.word_count}
+
+METADATA
+========
+Processing Time: ${result.metadata.processing_time}ms
+Content Type: ${result.metadata.content_type}
+Language: ${result.metadata.language}
+Readability Score: ${result.metadata.readability_score}/100
+    `
+
+    // Create blob and download
+    const blob = new Blob([pdfContent], { type: "text/plain;charset=utf-8" })
+    const link = document.createElement("a")
+    const url = URL.createObjectURL(blob)
+    link.setAttribute("href", url)
+    link.setAttribute("download", "content-pipeline-analysis.txt")
+    link.style.visibility = "hidden"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
   }
 
   const shareToTwitter = (content: string, hashtags: string[]) => {
-    const text = encodeURIComponent(`${content} ${hashtags.join(" ")}`)
-    window.open(`https://twitter.com/intent/tweet?text=${text}`, "_blank")
+    try {
+      const fullText = `${content} ${hashtags.join(" ")}`
+      const encodedText = encodeURIComponent(fullText)
+      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodedText}`
+
+      // Open with proper window parameters to ensure Twitter login page appears
+      const width = 550
+      const height = 420
+      const left = window.screenX + (window.outerWidth - width) / 2
+      const top = window.screenY + (window.outerHeight - height) / 2
+
+      window.open(
+        twitterUrl,
+        "twitter-share",
+        `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`,
+      )
+    } catch (error) {
+      console.error("Error opening Twitter share:", error)
+    }
   }
 
   const shareToLinkedIn = (content: string) => {
@@ -167,79 +283,115 @@ export function ContentPipelineInterface() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50">
-      {/* Hero Section */}
-      <div className="container mx-auto px-6 pt-12 pb-8 max-w-6xl">
-        <div className="text-center mb-12 animate-fade-in-up">
-          <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
-            <Sparkles className="h-4 w-4" />
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 relative overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float"></div>
+        <div
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float"
+          style={{ animationDelay: "2s" }}
+        ></div>
+        <div
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float"
+          style={{ animationDelay: "4s" }}
+        ></div>
+      </div>
+
+      <div className="container mx-auto px-6 pt-16 pb-12 max-w-7xl relative z-10">
+        <div className="text-center mb-16 animate-fade-in-up">
+          <div className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 px-6 py-3 rounded-full text-sm font-semibold mb-8 border border-purple-200 shadow-lg">
+            <Sparkles className="h-5 w-5" />
             AI-Powered Content Distribution with Engagement Forecasting
+            <Star className="h-4 w-4 text-yellow-500" />
           </div>
-          <h1 className="text-6xl font-bold text-balance mb-6">
-            <span className="gradient-text">Super fast content</span>
+
+          <h1 className="text-7xl md:text-8xl font-black text-balance mb-8 leading-tight">
+            <span className="gradient-text">Transform content</span>
             <br />
-            <span className="text-slate-900">with smart predictions</span>
+            <span className="text-slate-900">across platforms</span>
           </h1>
-          <p className="text-xl text-slate-600 text-balance max-w-2xl mx-auto leading-relaxed">
-            Transform your content for multiple platforms with intelligent adaptation, sentiment analysis, and
-            engagement forecasting.
+
+          <p className="text-2xl text-slate-600 text-balance max-w-3xl mx-auto leading-relaxed mb-12">
+            Intelligent content adaptation, sentiment analysis, and engagement forecasting powered by advanced AI.
           </p>
+
+          <div className="flex flex-wrap justify-center gap-6 mb-12">
+            <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-purple-100 shadow-sm">
+              <Brain className="h-4 w-4 text-purple-600" />
+              <span className="text-sm font-medium text-slate-700">AI-Powered</span>
+            </div>
+            <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-blue-100 shadow-sm">
+              <Globe className="h-4 w-4 text-blue-600" />
+              <span className="text-sm font-medium text-slate-700">Multi-Platform</span>
+            </div>
+            <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-green-100 shadow-sm">
+              <Rocket className="h-4 w-4 text-green-600" />
+              <span className="text-sm font-medium text-slate-700">Lightning Fast</span>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Input Section */}
-          <Card className="card-hover animate-fade-in-up border-0 shadow-xl bg-white/80 backdrop-blur-sm">
-            <CardHeader className="pb-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <Target className="h-5 w-5 text-purple-600" />
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-12">
+          <Card className="card-hover animate-fade-in-up border-0 shadow-2xl bg-white/90 backdrop-blur-sm relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-blue-500/5"></div>
+            <CardHeader className="pb-8 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl shadow-lg">
+                  <Target className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl">Content Input</CardTitle>
-                  <CardDescription className="text-slate-500">
-                    Enter your raw content and optional parameters
+                  <CardTitle className="text-2xl font-bold text-slate-900">Content Input</CardTitle>
+                  <CardDescription className="text-slate-600 text-base">
+                    Enter your content and watch AI work its magic
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-3">
-                <Label htmlFor="content" className="text-sm font-semibold text-slate-700">
+            <CardContent className="space-y-8 relative z-10">
+              <div className="space-y-4">
+                <Label htmlFor="content" className="text-base font-bold text-slate-800">
                   Raw Content *
                 </Label>
                 <Textarea
                   id="content"
-                  placeholder="Enter your content here..."
+                  placeholder="Share your thoughts, ideas, or announcements here..."
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  className="min-h-32 border-slate-200 focus:border-purple-300 focus:ring-purple-200 resize-none"
+                  className="min-h-40 border-2 border-slate-200 focus:border-purple-400 focus:ring-purple-200 resize-none text-base rounded-xl shadow-sm"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <Label htmlFor="audience" className="text-sm font-semibold text-slate-700">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <Label htmlFor="audience" className="text-base font-bold text-slate-800">
                     Target Audience
                   </Label>
-                  <Input
-                    id="audience"
-                    placeholder="tech professionals..."
-                    value={targetAudience}
-                    onChange={(e) => setTargetAudience(e.target.value)}
-                    className="border-slate-200 focus:border-purple-300 focus:ring-purple-200"
-                  />
+                  <Select value={targetAudience} onValueChange={setTargetAudience}>
+                    <SelectTrigger
+                      id="audience"
+                      className="border-2 border-slate-200 focus:border-purple-400 focus:ring-purple-200 h-12 text-base rounded-xl shadow-sm"
+                    >
+                      <SelectValue placeholder="Select target audience..." />
+                    </SelectTrigger>
+                    <SelectContent className="border-slate-200">
+                      {TARGET_AUDIENCE_OPTIONS.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                <div className="space-y-3">
-                  <Label htmlFor="tone" className="text-sm font-semibold text-slate-700">
+                <div className="space-y-4">
+                  <Label htmlFor="tone" className="text-base font-bold text-slate-800">
                     Desired Tone
                   </Label>
                   <Input
                     id="tone"
-                    placeholder="professional, casual..."
+                    placeholder="professional, casual, friendly..."
                     value={tone}
                     onChange={(e) => setTone(e.target.value)}
-                    className="border-slate-200 focus:border-purple-300 focus:ring-purple-200"
+                    className="border-2 border-slate-200 focus:border-purple-400 focus:ring-purple-200 h-12 text-base rounded-xl shadow-sm"
                   />
                 </div>
               </div>
@@ -247,45 +399,76 @@ export function ContentPipelineInterface() {
               <Button
                 onClick={handleProcess}
                 disabled={!content.trim() || isProcessing}
-                className={`w-full h-12 text-base font-semibold transition-all duration-300 ${
+                className={`w-full h-14 text-lg font-bold transition-all duration-300 rounded-xl shadow-lg ${
                   isProcessing
                     ? "bg-slate-400"
-                    : "gradient-bg hover:shadow-lg hover:shadow-purple-500/25 hover:scale-[1.02] active:scale-[0.98]"
+                    : "gradient-bg hover:shadow-xl hover:shadow-purple-500/30 hover:scale-[1.02] active:scale-[0.98] glow-purple"
                 }`}
               >
                 {isProcessing ? (
                   <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    <Loader2 className="mr-3 h-6 w-6 animate-spin" />
                     Processing Content...
                   </>
                 ) : (
                   <>
-                    <Zap className="mr-2 h-5 w-5" />
-                    Process Content
+                    <Zap className="mr-3 h-6 w-6" />
+                    Transform Content
                   </>
                 )}
               </Button>
             </CardContent>
           </Card>
 
-          {/* Results Section */}
-          <Card className="card-hover animate-slide-in-right border-0 shadow-xl bg-white/80 backdrop-blur-sm">
-            <CardHeader className="pb-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <BarChart3 className="h-5 w-5 text-blue-600" />
+          <Card className="card-hover animate-slide-in-right border-0 shadow-2xl bg-white/90 backdrop-blur-sm relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5"></div>
+            <CardHeader className="pb-8 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl shadow-lg">
+                  <BarChart3 className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl">Processing Results & Engagement Forecasting</CardTitle>
-                  <CardDescription className="text-slate-500">
-                    View your adapted content, analysis, and engagement predictions
+                  <CardTitle className="text-2xl font-bold text-slate-900">AI Analysis & Predictions</CardTitle>
+                  <CardDescription className="text-slate-600 text-base">
+                    Real-time insights and engagement forecasting
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="relative z-10">
               {result ? (
-                <div className="space-y-6 animate-fade-in-up">
+                <div className="space-y-8 animate-scale-in">
+                  <div className="p-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl border-2 border-purple-100 shadow-sm">
+                    <h3 className="font-bold mb-4 text-slate-900 text-lg flex items-center gap-2">
+                      <Brain className="h-5 w-5 text-purple-600" />
+                      Sentiment Analysis
+                    </h3>
+                    <div className="flex items-center gap-4">
+                      <Badge
+                        className={`px-4 py-2 font-bold text-base ${
+                          result.sentiment.label === "positive"
+                            ? "bg-green-100 text-green-800 hover:bg-green-200 border-green-200"
+                            : result.sentiment.label === "negative"
+                              ? "bg-red-100 text-red-800 hover:bg-red-200 border-red-200"
+                              : "bg-yellow-100 text-yellow-800 hover:bg-yellow-200 border-yellow-200"
+                        }`}
+                      >
+                        {result.sentiment.label.toUpperCase()}
+                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 h-2 bg-slate-200 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all duration-500"
+                            style={{ width: `${result.sentiment.confidence * 100}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-base font-bold text-slate-700">
+                          {(result.sentiment.confidence * 100).toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Sentiment Analysis */}
                   <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-100">
                     <h3 className="font-semibold mb-3 text-slate-800">Sentiment Analysis</h3>
@@ -687,49 +870,52 @@ export function ContentPipelineInterface() {
                     </div>
                   </div>
 
-                  <Button
-                    onClick={downloadResults}
-                    variant="outline"
-                    className="w-full h-11 border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300 transition-all duration-200 bg-transparent"
-                  >
-                    <Download className="mr-2 h-4 w-4" />
-                    Download Results (JSON)
-                  </Button>
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={downloadResults}
+                      variant="outline"
+                      className="flex-1 h-12 border-2 border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300 transition-all duration-200 bg-transparent font-bold text-base rounded-xl"
+                    >
+                      <FileText className="mr-3 h-5 w-5" />
+                      Download as Report
+                    </Button>
+                  </div>
                 </div>
               ) : (
-                <div className="text-center text-slate-400 py-12 animate-fade-in-up">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
-                    <BarChart3 className="h-8 w-8 text-slate-400" />
+                <div className="text-center text-slate-400 py-16 animate-fade-in-up">
+                  <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-purple-100 to-blue-100 rounded-2xl flex items-center justify-center shadow-lg">
+                    <BarChart3 className="h-10 w-10 text-purple-500" />
                   </div>
-                  <p className="text-lg font-medium">Ready to generate content</p>
-                  <p className="text-sm mt-1">Enter your content and get AI-powered predictions and optimization</p>
+                  <p className="text-2xl font-bold text-slate-600 mb-2">Ready to Transform</p>
+                  <p className="text-base text-slate-500">
+                    Enter your content to see AI-powered insights and predictions
+                  </p>
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Stats Section */}
-        <div className="mt-16 text-center animate-fade-in-up">
-          <p className="text-slate-600 mb-8">
-            Over 10,000 content creators use our pipeline to distribute content across platforms.
+        <div className="mt-24 text-center animate-fade-in-up">
+          <p className="text-xl text-slate-600 mb-12 font-medium">
+            Trusted by over <span className="font-bold text-purple-600">10,000+</span> content creators worldwide
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-slate-800">3</div>
-              <div className="text-sm text-slate-600">Platforms</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+            <div className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-purple-100 card-hover">
+              <div className="text-4xl font-black text-purple-600 mb-2">3</div>
+              <div className="text-base font-semibold text-slate-600">Platforms</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-slate-800">AI</div>
-              <div className="text-sm text-slate-600">Powered</div>
+            <div className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-blue-100 card-hover">
+              <div className="text-4xl font-black text-blue-600 mb-2">AI</div>
+              <div className="text-base font-semibold text-slate-600">Powered</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-slate-800">Fast</div>
-              <div className="text-sm text-slate-600">Processing</div>
+            <div className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-green-100 card-hover">
+              <div className="text-4xl font-black text-green-600 mb-2">Fast</div>
+              <div className="text-base font-semibold text-slate-600">Processing</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-slate-800">Smart</div>
-              <div className="text-sm text-slate-600">Analysis</div>
+            <div className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-indigo-100 card-hover">
+              <div className="text-4xl font-black text-indigo-600 mb-2">Smart</div>
+              <div className="text-base font-semibold text-slate-600">Analysis</div>
             </div>
           </div>
         </div>
