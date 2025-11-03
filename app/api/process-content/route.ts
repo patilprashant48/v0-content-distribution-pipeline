@@ -8,10 +8,6 @@ interface ContentRequest {
 
 interface ProcessedContent {
   original_content: string
-  sentiment: {
-    label: string
-    confidence: number
-  }
   engagement_forecast: {
     twitter: {
       predicted_likes: number
@@ -65,64 +61,6 @@ interface ProcessedContent {
     content_type: string
     language: string
     readability_score: number
-  }
-}
-
-// Simple sentiment analysis using keyword matching
-function analyzeSentiment(text: string) {
-  const positiveWords = [
-    "good",
-    "great",
-    "excellent",
-    "amazing",
-    "wonderful",
-    "fantastic",
-    "love",
-    "best",
-    "awesome",
-    "perfect",
-    "happy",
-    "excited",
-    "thrilled",
-    "delighted",
-  ]
-  const negativeWords = [
-    "bad",
-    "terrible",
-    "awful",
-    "horrible",
-    "hate",
-    "worst",
-    "disappointed",
-    "frustrated",
-    "angry",
-    "sad",
-    "difficult",
-    "problem",
-    "issue",
-    "failed",
-  ]
-
-  const words = text.toLowerCase().split(/\W+/)
-  let positiveCount = 0
-  let negativeCount = 0
-
-  words.forEach((word) => {
-    if (positiveWords.includes(word)) positiveCount++
-    if (negativeWords.includes(word)) negativeCount++
-  })
-
-  const total = positiveCount + negativeCount
-  if (total === 0) {
-    return { label: "neutral", confidence: 0.5 }
-  }
-
-  if (positiveCount > negativeCount) {
-    return { label: "positive", confidence: Math.min(0.95, 0.6 + (positiveCount / total) * 0.4) }
-  } else if (negativeCount > positiveCount) {
-    return { label: "negative", confidence: Math.min(0.95, 0.6 + (negativeCount / total) * 0.4) }
-  } else {
-    return { label: "neutral", confidence: 0.7 }
   }
 }
 
@@ -227,7 +165,7 @@ function adaptForPlatform(content: string, platform: string, audience?: string, 
   return adaptedContent
 }
 
-function predictEngagement(content: string, platform: string, sentiment: any) {
+function predictEngagement(content: string, platform: string) {
   const contentLength = content.length
   const wordCount = content.split(/\s+/).length
   const hasHashtags = content.includes("#")
@@ -240,10 +178,6 @@ function predictEngagement(content: string, platform: string, sentiment: any) {
   // Base engagement score calculation
   let baseScore = 50
 
-  // Sentiment impact
-  if (sentiment.label === "positive") baseScore += 15
-  else if (sentiment.label === "negative") baseScore += 5
-
   // Content features impact
   if (hasHashtags) baseScore += 10
   if (hasEmojis) baseScore += 8
@@ -253,7 +187,6 @@ function predictEngagement(content: string, platform: string, sentiment: any) {
   // Platform-specific calculations
   switch (platform) {
     case "twitter":
-      // Optimal length for Twitter is 71-100 characters
       if (contentLength >= 71 && contentLength <= 100) baseScore += 10
       else if (contentLength > 280) baseScore -= 20
 
@@ -266,7 +199,6 @@ function predictEngagement(content: string, platform: string, sentiment: any) {
       }
 
     case "linkedin":
-      // LinkedIn prefers longer, professional content
       if (wordCount >= 50 && wordCount <= 200) baseScore += 15
       if (content.includes("professional") || content.includes("business")) baseScore += 10
 
@@ -279,7 +211,6 @@ function predictEngagement(content: string, platform: string, sentiment: any) {
       }
 
     case "newsletter":
-      // Newsletter engagement based on subject line and content quality
       const subjectScore = content.split(".")[0].length <= 50 ? 10 : -5
       baseScore += subjectScore
 
@@ -374,7 +305,7 @@ function generateOptimizedHashtags(content: string, platform: string): string[] 
   return allTags.slice(0, 5)
 }
 
-function generateOptimizationSuggestions(content: string, sentiment: any, platforms: any) {
+function generateOptimizationSuggestions(content: string, platforms: any) {
   const suggestions = {
     hashtag_recommendations: [],
     keyword_suggestions: [],
@@ -382,7 +313,6 @@ function generateOptimizationSuggestions(content: string, sentiment: any, platfo
     timing_recommendations: [],
   }
 
-  // Hashtag recommendations
   suggestions.hashtag_recommendations = [
     "Add trending hashtags for better discoverability",
     "Use platform-specific hashtags",
@@ -390,7 +320,6 @@ function generateOptimizationSuggestions(content: string, sentiment: any, platfo
     "Mix popular and niche hashtags",
   ]
 
-  // Keyword suggestions
   const hasKeywords = /\b(amazing|incredible|breakthrough|innovative|revolutionary)\b/i.test(content)
   if (!hasKeywords) {
     suggestions.keyword_suggestions.push('Add power words like "amazing", "breakthrough", or "innovative"')
@@ -400,16 +329,11 @@ function generateOptimizationSuggestions(content: string, sentiment: any, platfo
     suggestions.keyword_suggestions.push("Consider adding a question to increase engagement")
   }
 
-  // Tone adjustments
-  if (sentiment.label === "neutral") {
-    suggestions.tone_adjustments.push("Consider adding more emotional language to increase engagement")
-  }
+  suggestions.tone_adjustments = [
+    "Consider adding more emotional language to increase engagement",
+    "Clarify the tone to make the message more impactful",
+  ]
 
-  if (sentiment.confidence < 0.7) {
-    suggestions.tone_adjustments.push("Clarify the tone to make the message more impactful")
-  }
-
-  // Timing recommendations
   suggestions.timing_recommendations = [
     "Post during peak hours for your audience",
     "Consider time zones of your target audience",
@@ -420,34 +344,28 @@ function generateOptimizationSuggestions(content: string, sentiment: any, platfo
   return suggestions
 }
 
-function optimizeContentForEngagement(content: string, platform: string, sentiment: any) {
+function optimizeContentForEngagement(content: string, platform: string) {
   let optimizedContent = content
 
-  // Add engagement-boosting elements
   if (!content.includes("?") && platform !== "newsletter") {
-    // Add engaging questions
     const questions = ["What do you think?", "Have you experienced this?", "What's your take on this?", "Do you agree?"]
     optimizedContent += " " + questions[Math.floor(Math.random() * questions.length)]
   }
 
-  // Platform-specific optimizations
   switch (platform) {
     case "twitter":
-      // Add trending elements
       if (!optimizedContent.includes("#")) {
         optimizedContent += " #Innovation"
       }
       break
 
     case "linkedin":
-      // Add professional call-to-action
       if (!optimizedContent.includes("share") && !optimizedContent.includes("comment")) {
         optimizedContent += "\n\nShare your thoughts in the comments below!"
       }
       break
 
     case "newsletter":
-      // Optimize subject line
       const words = content.split(" ")
       if (words.length > 8) {
         return content.split(".")[0].substring(0, 47) + "..."
@@ -470,34 +388,28 @@ export async function POST(request: NextRequest) {
 
     const { content, target_audience, tone } = body
 
-    // Perform sentiment analysis
-    const sentimentAnalysis = analyzeSentiment(content)
+    const twitterForecast = predictEngagement(content, "twitter")
+    const linkedinForecast = predictEngagement(content, "linkedin")
+    const newsletterForecast = predictEngagement(content, "newsletter")
 
-    const twitterForecast = predictEngagement(content, "twitter", sentimentAnalysis)
-    const linkedinForecast = predictEngagement(content, "linkedin", sentimentAnalysis)
-    const newsletterForecast = predictEngagement(content, "newsletter", sentimentAnalysis)
-
-    // Adapt content for each platform
     const twitterContent = adaptForPlatform(content, "twitter", target_audience, tone)
     const linkedinContent = adaptForPlatform(content, "linkedin", target_audience, tone)
     const newsletterContent = adaptForPlatform(content, "newsletter", target_audience, tone)
 
-    const optimizedTwitter = optimizeContentForEngagement(twitterContent, "twitter", sentimentAnalysis)
-    const optimizedLinkedIn = optimizeContentForEngagement(linkedinContent, "linkedin", sentimentAnalysis)
-    const optimizedNewsletterSubject = optimizeContentForEngagement(content, "newsletter", sentimentAnalysis)
+    const optimizedTwitter = optimizeContentForEngagement(twitterContent, "twitter")
+    const optimizedLinkedIn = optimizeContentForEngagement(linkedinContent, "linkedin")
+    const optimizedNewsletterSubject = optimizeContentForEngagement(content, "newsletter")
 
-    const optimizationSuggestions = generateOptimizationSuggestions(content, sentimentAnalysis, {
+    const optimizationSuggestions = generateOptimizationSuggestions(content, {
       twitter: twitterContent,
       linkedin: linkedinContent,
       newsletter: newsletterContent,
     })
 
-    // Generate subject line for newsletter
     const subjectLine = content.split(".")[0].substring(0, 50) + (content.length > 50 ? "..." : "")
 
     const result: ProcessedContent = {
       original_content: content,
-      sentiment: sentimentAnalysis,
       engagement_forecast: {
         twitter: twitterForecast,
         linkedin: linkedinForecast,
@@ -527,7 +439,7 @@ export async function POST(request: NextRequest) {
       metadata: {
         processing_time: Date.now() - startTime,
         content_type: content.length > 500 ? "long-form" : "short-form",
-        language: "en", // Simplified - would use language detection in real implementation
+        language: "en",
         readability_score: calculateReadability(content),
       },
     }

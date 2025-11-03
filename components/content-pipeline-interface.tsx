@@ -30,10 +30,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface ProcessedContent {
   original_content: string
-  sentiment: {
-    label: string
-    confidence: number
-  }
   engagement_forecast: {
     twitter: {
       predicted_likes: number
@@ -151,11 +147,6 @@ CONTENT DISTRIBUTION PIPELINE - ANALYSIS REPORT
 
 ORIGINAL CONTENT
 ${result.original_content}
-
-SENTIMENT ANALYSIS
-==================
-Sentiment: ${result.sentiment.label.toUpperCase()}
-Confidence: ${(result.sentiment.confidence * 100).toFixed(1)}%
 
 ENGAGEMENT FORECASTING
 ======================
@@ -311,7 +302,7 @@ Readability Score: ${result.metadata.readability_score}/100
           </h1>
 
           <p className="text-2xl text-slate-600 text-balance max-w-3xl mx-auto leading-relaxed mb-12">
-            Intelligent content adaptation, sentiment analysis, and engagement forecasting powered by advanced AI.
+            Intelligent content adaptation and engagement forecasting powered by advanced AI.
           </p>
 
           <div className="flex flex-wrap justify-center gap-6 mb-12">
@@ -438,58 +429,6 @@ Readability Score: ${result.metadata.readability_score}/100
             <CardContent className="relative z-10">
               {result ? (
                 <div className="space-y-8 animate-scale-in">
-                  <div className="p-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl border-2 border-purple-100 shadow-sm">
-                    <h3 className="font-bold mb-4 text-slate-900 text-lg flex items-center gap-2">
-                      <Brain className="h-5 w-5 text-purple-600" />
-                      Sentiment Analysis
-                    </h3>
-                    <div className="flex items-center gap-4">
-                      <Badge
-                        className={`px-4 py-2 font-bold text-base ${
-                          result.sentiment.label === "positive"
-                            ? "bg-green-100 text-green-800 hover:bg-green-200 border-green-200"
-                            : result.sentiment.label === "negative"
-                              ? "bg-red-100 text-red-800 hover:bg-red-200 border-red-200"
-                              : "bg-yellow-100 text-yellow-800 hover:bg-yellow-200 border-yellow-200"
-                        }`}
-                      >
-                        {result.sentiment.label.toUpperCase()}
-                      </Badge>
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 h-2 bg-slate-200 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all duration-500"
-                            style={{ width: `${result.sentiment.confidence * 100}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-base font-bold text-slate-700">
-                          {(result.sentiment.confidence * 100).toFixed(1)}%
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Sentiment Analysis */}
-                  <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-100">
-                    <h3 className="font-semibold mb-3 text-slate-800">Sentiment Analysis</h3>
-                    <div className="flex items-center gap-3">
-                      <Badge
-                        className={`px-3 py-1 font-medium ${
-                          result.sentiment.label === "positive"
-                            ? "bg-green-100 text-green-700 hover:bg-green-200"
-                            : result.sentiment.label === "negative"
-                              ? "bg-red-100 text-red-700 hover:bg-red-200"
-                              : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
-                        }`}
-                      >
-                        {result.sentiment.label}
-                      </Badge>
-                      <span className="text-sm text-slate-600 font-medium">
-                        {(result.sentiment.confidence * 100).toFixed(1)}% confidence
-                      </span>
-                    </div>
-                  </div>
-
                   {/* Engagement Forecasting */}
                   <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
                     <h3 className="font-semibold mb-4 text-slate-800 flex items-center gap-2">
